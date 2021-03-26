@@ -1,5 +1,6 @@
-revpipyload (0.9.6-1+revpi10) UNRELEASED; urgency=medium
+revpipyload (0.9.6-1+revpi10) unstable; urgency=medium
 
   * Import revpipyload 0.9.6
+  * patch: Debundle python3 paho mqtt client
 
- -- Philipp Rosenberger <p.rosenberger@kunbus.com>  Wed, 24 Mar 2021 11:17:20 +0100
+ -- Philipp Rosenberger <p.rosenberger@kunbus.com>  Fri, 26 Mar 2021 15:17:30 +0100
