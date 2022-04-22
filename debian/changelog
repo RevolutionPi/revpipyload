@@ -1,3 +1,16 @@
+revpipyload (0.9.7-1+revpi10) unstable; urgency=medium
+
+  [Sven Sager]
+  * The MQTT system sends byte IOs as real byte to the broker
+  * Reset of piControl via ioctl
+  * Bugfix: Write MQTT values without enabled send_on_event
+  * Bugfix: Missing core. IOs in MQTT on RevPi FLAT devices
+  * secure_installation will only reload settings, if daemon is running
+  * Code cleanup
+  * Improve log information about plc program exit like termed/killed/exit
+
+ -- Nicolai Buchwitz <n.buchwitz@kunbus.com>  Fri, 22 Apr 2022 15:00:30 +0100
+
 revpipyload (0.9.6-1+revpi10) unstable; urgency=medium
 
   * Import revpipyload 0.9.6
