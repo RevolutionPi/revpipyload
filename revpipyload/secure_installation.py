@@ -72,9 +72,7 @@ def save_xmlrpcacls():
 def print_xmlrpcacls():
     """Print a list with all acl."""
     if xmlrpcacl.acl:
-        stdout.write(
-            "\nThis is the actual ACL file ({0}):".format(aclxmlrpc)
-        )
+        stdout.write("\nThis is the actual ACL file ({0}):".format(aclxmlrpc))
         counter = 0
         for acl in xmlrpcacl.acl.split():
             stdout.write("\n" if counter % 2 == 0 else "     |     ")
@@ -92,28 +90,20 @@ def print_xmlrpcacls():
 
 try:
     if not xmlrpc_only_localhost:
-        cmd = input(
-            "\nDo you want to check ACL listed computers? (y/N) "
-        ).lower()
+        cmd = input("\nDo you want to check ACL listed computers? (y/N) ").lower()
         if cmd == "y":
             print_xmlrpcacls()
 
     if getuid() != 0:
-        stderr.write(
-            "\nYou need root permissions to change values (sudo).\n"
-        )
+        stderr.write("\nYou need root permissions to change values (sudo).\n")
         exit(4)
 
-    cmd = input(
-        "\nDo you want to allow connections from remote hosts? (y/N) "
-    ).lower()
+    cmd = input("\nDo you want to allow connections from remote hosts? (y/N) ").lower()
     if cmd == "y":
         conf.set("XMLRPC", "xmlrpc", "1")
         conf.set("XMLRPC", "bindip", "*")
 
-        cmd = input(
-            "Reset the ACL file to allow all private networks? (y/N) "
-        ).lower()
+        cmd = input("Reset the ACL file to allow all private networks? (y/N) ").lower()
         if cmd == "y":
             xmlrpcacl.acl = "127.*.*.*,4 " \
                 "169.254.*.*,4 " \
@@ -126,18 +116,12 @@ try:
             save_xmlrpcacls()
 
         else:
-            cmd = input(
-                "Reset the ACL file by enter individual ip addresses to "
-                "grant access? (y/N) "
-            ).lower()
+            cmd = input("Reset the ACL file by enter individual ip addresses to grant access? (y/N) ").lower()
             if cmd == "y":
                 # Always set local host
                 lst_ip = ["127.*.*.*,4 "]
                 while True:
-                    cmd = input(
-                        "Enter single IPv4 address | "
-                        "Press RETURN to complete: "
-                    )
+                    cmd = input("Enter single IPv4 address | Press RETURN to complete: ")
                     if not cmd:
                         xmlrpcacl.acl = " ".join(lst_ip)
                         save_xmlrpcacls()
@@ -150,16 +134,12 @@ try:
                         stderr.write("Wrong format (0.0.0.0)\n")
 
     else:
-        cmd = input(
-            "Do you want to allow connections from localhost ONLY? (y/N) "
-        ).lower()
+        cmd = input("Do you want to allow connections from localhost ONLY? (y/N) ").lower()
         if cmd == "y":
             conf.set("XMLRPC", "xmlrpc", "1")
             conf.set("XMLRPC", "bindip", "127.0.0.1")
 
-            cmd = input(
-                "Reset the ACL file to allow localhost connections only? (y/N) "
-            ).lower()
+            cmd = input("Reset the ACL file to allow localhost connections only? (y/N) ").lower()
             if cmd == "y":
                 xmlrpcacl.acl = "127.*.*.*,4 "
                 save_xmlrpcacls()
@@ -188,14 +168,15 @@ except KeyboardInterrupt:
     stdout.write("\n\nWe did no changes!\n")
     exit(2)
 
-try:
-    cmd = input("\nDo you want to apply the new settings now? (Y/n) ").lower()
-    if cmd in ("", "y"):
-        system("/etc/init.d/revpipyload reload")
-    else:
-        stderr.write(
-            "\nYou have to activate the new settings for RevPiPyLoad!\n"
-            "    sudo /etc/init.d/revpipyload reload\n"
-        )
-except KeyboardInterrupt:
-    pass
+if system("/etc/init.d/revpipyload status > /dev/null") == 0:
+    try:
+        cmd = input("\nDo you want to apply the new settings now? (Y/n) ").lower()
+        if cmd in ("", "y"):
+            system("/etc/init.d/revpipyload reload")
+        else:
+            stderr.write(
+                "\nYou have to activate the new settings for RevPiPyLoad!\n"
+                "    sudo /etc/init.d/revpipyload reload\n"
+            )
+    except KeyboardInterrupt:
+        pass

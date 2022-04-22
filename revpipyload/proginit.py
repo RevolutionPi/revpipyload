@@ -3,6 +3,7 @@
 __author__ = "Sven Sager"
 __copyright__ = "Copyright (C) 2018 Sven Sager"
 __license__ = "GPLv3"
+
 import logging
 import os
 import sys
@@ -14,16 +15,14 @@ forked = False
 globalconffile = None
 logapp = "revpipyloadapp.log"
 logplc = "revpipyload.log"
-logger = None
+logger = logging.getLogger()
 pargs = None
-picontrolreset = "/opt/KUNBUS/piControlReset"
 rapcatalog = None
 startdir = None
 
 
 def cleanup():
     """Clean up program."""
-    # NOTE: Pidfile wirklich löschen?
     if pargs is not None and pargs.daemon:
         if os.path.exists("/var/run/revpipyload.pid"):
             os.remove("/var/run/revpipyload.pid")
@@ -116,11 +115,6 @@ def configure():
             "".format(", ".join(lst_rsc))
         )
 
-    # piControlReset suchen
-    global picontrolreset
-    if not os.access(picontrolreset, os.F_OK | os.X_OK):
-        picontrolreset = "/usr/bin/piTest -x"
-
     # rap Katalog an bekannten Stellen prüfen und laden
     global rapcatalog
     lst_rap = [
@@ -159,11 +153,6 @@ def configure():
     # Initialize configparser globalconfig
     global globalconffile
     globalconffile = pargs.conffile
-
-    # Program logger
-    global logger
-    if logger is None:
-        logger = logging.getLogger()
 
     # Alle handler entfernen
     for lhandler in logger.handlers:

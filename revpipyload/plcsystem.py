@@ -3,13 +3,14 @@
 __author__ = "Sven Sager"
 __copyright__ = "Copyright (C) 2020 Sven Sager"
 __license__ = "GPLv3"
+
 import os
 import shlex
 import subprocess
 from pwd import getpwuid
 from sys import stdout as sysstdout
 from threading import Event, Thread
-from time import sleep, asctime
+from time import asctime, sleep
 
 import proginit
 from helper import _setuprt, _zeroprocimg
@@ -18,7 +19,6 @@ from watchdogs import SoftwareWatchdog
 
 
 class RevPiPlc(Thread):
-
     """Verwaltet das PLC Python Programm.
 
     Dieser Thread startet das PLC Python Programm und ueberwacht es. Sollte es
@@ -40,6 +40,7 @@ class RevPiPlc(Thread):
         self._program = program
         self._procplc = None
         self._pversion = pversion
+        self._stop_timeout_steps = 10
         self.autoreload = False
         self.exitcode = None
         self.gid = 65534
@@ -53,9 +54,7 @@ class RevPiPlc(Thread):
 
     def __exec_rtlevel(self):
         """RealTime Scheduler nutzen nach 5 Sekunden Programmvorlauf."""
-        if self.rtlevel > 0 \
-                and not self._evt_exit.wait(5) \
-                and self._procplc.poll() is None:
+        if self.rtlevel > 0 and not self._evt_exit.wait(5) and self._procplc.poll() is None:
             _setuprt(self._procplc.pid, self._evt_exit)
 
     def __get_autoreloaddelay(self):
@@ -92,19 +91,14 @@ class RevPiPlc(Thread):
         """Setzt UID und GID fuer das PLC Programm."""
         proginit.logger.debug("enter RevPiPlc._setuppopen()")
 
-        proginit.logger.info(
-            "set uid {0} and gid {1} for plc program".format(
-                self.uid, self.gid)
-            )
+        proginit.logger.info("set uid {0} and gid {1} for plc program".format(self.uid, self.gid))
 
         # Set user last to hold root right to do the group things
         try:
             name = getpwuid(self.uid).pw_name
             os.initgroups(name, self.gid)
         except Exception:
-            proginit.logger.warning(
-                "could not initialize the group access list with all groups"
-            )
+            proginit.logger.warning("could not initialize the group access list with all groups")
         os.setgid(self.gid)
         os.setuid(self.uid)
 
@@ -150,9 +144,7 @@ class RevPiPlc(Thread):
         # LogWriter starten und Logausgaben schreiben
         if self._plw is not None:
             self._plw.logline("-" * 55)
-            self._plw.logline("plc: {0} started: {1}".format(
-                os.path.basename(self._program), asctime()
-            ))
+            self._plw.logline("plc: {0} started: {1}".format(os.path.basename(self._program), asctime()))
             self._plw.start()
 
         # Befehlstliste aufbauen
@@ -183,22 +175,13 @@ class RevPiPlc(Thread):
                         proginit.logger.info("plc program did a clean exit")
                         if self.zeroonexit:
                             _zeroprocimg()
-                            proginit.logger.info(
-                                "set piControl0 to ZERO after "
-                                "PLC program returns clean exitcode"
-                            )
+                            proginit.logger.info("set piControl0 to ZERO after PLC program returns clean exitcode")
                     else:
                         # PLC Python Programm abgestürzt
-                        proginit.logger.error(
-                            "plc program crashed - exitcode: {0}"
-                            "".format(self.exitcode)
-                        )
+                        proginit.logger.error("plc program crashed - exitcode: {0}".format(self.exitcode))
                         if self.zeroonerror:
                             _zeroprocimg()
-                            proginit.logger.warning(
-                                "set piControl0 to ZERO after "
-                                "PLC program error"
-                            )
+                            proginit.logger.warning("set piControl0 to ZERO after PLC program error")
 
                 if not self._evt_exit.is_set() and self.autoreload:
                     self._delaycounter -= 1
@@ -208,13 +191,9 @@ class RevPiPlc(Thread):
                         # Prozess neu starten
                         self._procplc = self._spopen(lst_proc)
                         if self.exitcode == 0:
-                            proginit.logger.warning(
-                                "restart plc program after clean exit"
-                            )
+                            proginit.logger.warning("restart plc program after clean exit")
                         else:
-                            proginit.logger.warning(
-                                "restart plc program after crash"
-                            )
+                            proginit.logger.warning("restart plc program after crash")
                         self.__exec_rtlevel()
                 else:
                     break
@@ -223,9 +202,7 @@ class RevPiPlc(Thread):
 
         if self._plw is not None:
             self._plw.logline("-" * 55)
-            self._plw.logline("plc: {0} stopped: {1}".format(
-                os.path.basename(self._program), asctime()
-            ))
+            self._plw.logline("plc: {0} stopped: {1}".format(os.path.basename(self._program), asctime()))
 
         proginit.logger.debug("leave RevPiPlc.run()")
 
@@ -257,24 +234,26 @@ class RevPiPlc(Thread):
             proginit.logger.debug("leave RevPiPlc.stop()")
             return
 
-        while self._procplc.poll() is None and count < 10:
+        while self._procplc.poll() is None and count < self._stop_timeout_steps:
             count += 1
-            proginit.logger.info(
-                "wait term plc program {0} seconds".format(count * 0.5)
-            )
+            proginit.logger.debug("wait term plc program {0} seconds".format(count * 0.5))
             sleep(0.5)
         if self._procplc.poll() is None:
-            proginit.logger.warning(
-                "can not term plc program {0}".format(self._program)
-            )
+            proginit.logger.warning("can not term plc program {0}".format(self._program))
             self._procplc.kill()
             proginit.logger.warning("killed plc program")
 
         # Exitcode auswerten
         self.exitcode = self._procplc.poll()
-        if self.zeroonexit and self.exitcode == 0 \
-                or self.zeroonerror and self.exitcode != 0:
+        if self.zeroonexit and self.exitcode == 0 or self.zeroonerror and self.exitcode != 0:
             _zeroprocimg()
+
+        if self.exitcode == 0:
+            proginit.logger.info("stopped plc program")
+        elif self.exitcode == -15:
+            proginit.logger.warning("terminated plc program without own exit code")
+        elif self.exitcode is not None and self.exitcode > 0:
+            proginit.logger.warning("stopped plc program with exit code {0}".format(self.exitcode))
 
         if self._plw is not None:
             self._plw.stop()
@@ -284,3 +263,15 @@ class RevPiPlc(Thread):
         proginit.logger.debug("leave RevPiPlc.stop()")
 
     autoreloaddelay = property(__get_autoreloaddelay, __set_autoreloaddelay)
+
+    @property
+    def stop_timeout(self) -> int:
+        """Get program stop timeout in seconds."""
+        return self._stop_timeout_steps // 2
+
+    @stop_timeout.setter
+    def stop_timeout(self, value: int):
+        """Set program stop timeout in seconds."""
+        if type(value) != int:
+            raise TypeError("Value of stop_timeout must be <class 'int'>")
+        self._stop_timeout_steps = value * 2

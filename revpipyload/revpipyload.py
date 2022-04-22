@@ -28,7 +28,7 @@ begrenzt werden!
 __author__ = "Sven Sager"
 __copyright__ = "Copyright (C) 2020 Sven Sager"
 __license__ = "GPLv3"
-__version__ = "0.9.6"
+__version__ = "0.9.7"
 
 import gzip
 import os
@@ -48,7 +48,7 @@ import logsystem
 import picontrolserver
 import plcsystem
 import proginit
-from helper import refullmatch, get_revpiled_address
+from helper import get_revpiled_address, pi_control_reset, refullmatch
 from shared.ipaclmanager import IpAclManager
 from watchdogs import ResetDriverWatchdog
 from xrpcserver import SaveXMLRPCServer
@@ -220,6 +220,8 @@ class RevPiPyLoad:
             "plcworkdir", ".")
         self.plcprogram = self.globalconfig["DEFAULT"].get(
             "plcprogram", "none.py")
+        self.plcprogram_stop_timeout = self.globalconfig.getint(
+            "DEFAULT", "plcprogram_stop_timeout", fallback=5)
         self.plcprogram_watchdog = self.globalconfig["DEFAULT"].getint(
             "plcprogram_watchdog", 0)
         self.plcarguments = self.globalconfig["DEFAULT"].get(
@@ -376,6 +378,7 @@ class RevPiPyLoad:
             self.plc.autoreload = self.autoreload
             self.plc.autoreloaddelay = self.autoreloaddelay
             self.plc.softdog.timeout = self.plcprogram_watchdog
+            self.plc.stop_timeout = self.plcprogram_stop_timeout
             self.plc.zeroonerror = self.zeroonerror
             self.plc.zeroonexit = self.zeroonexit
 
@@ -472,10 +475,7 @@ class RevPiPyLoad:
             self.xsrv.register_function(
                 3, self.xml_plcuploadclean, "plcuploadclean")
             self.xsrv.register_function(
-                3,
-                lambda: os.system(proginit.picontrolreset),
-                "resetpicontrol"
-            )
+                3, pi_control_reset, "resetpicontrol")
             self.xsrv.register_function(
                 3, self.xml_mqttstart, "mqttstart")
             self.xsrv.register_function(
@@ -581,6 +581,7 @@ class RevPiPyLoad:
         th_plc.softdog.address = \
             0 if self.revpi_led_address < 0 else self.revpi_led_address
         th_plc.softdog.timeout = self.plcprogram_watchdog
+        th_plc.stop_timeout = self.plcprogram_stop_timeout
         th_plc.zeroonerror = self.zeroonerror
         th_plc.zeroonexit = self.zeroonexit
 
@@ -964,6 +965,7 @@ class RevPiPyLoad:
         dc["plcworkdir"] = self.plcworkdir
         dc["plcworkdir_set_uid"] = int(self.plcworkdir_set_uid)
         dc["plcprogram"] = self.plcprogram
+        dc["plcprogram_stop_timeout"] = self.plcprogram_stop_timeout
         dc["plcprogram_watchdog"] = self.plcprogram_watchdog
         dc["plcarguments"] = self.plcarguments
         dc["plcuid"] = self.plcuid
@@ -1108,7 +1110,7 @@ class RevPiPyLoad:
             return xmldata
         return Binary()
 
-    def xml_plcdownload_file(self, file_name:str):
+    def xml_plcdownload_file(self, file_name: str):
         """
         Download a single file from work directory.
 
@@ -1253,6 +1255,7 @@ class RevPiPyLoad:
                 "autoreloaddelay": "[0-9]+",
                 "autostart": "[01]",
                 "plcprogram": ".+",
+                "plcprogram_stop_timeout": "[0-9]+",
                 "plcprogram_watchdog": "[0-9]+",
                 "plcarguments": ".*",
                 "plcworkdir_set_uid": "[01]",
@@ -1374,7 +1377,7 @@ class RevPiPyLoad:
             -3 Konnte Konfiguraiton nicht schreiben
             -4 Module in Konfiguration enthalten, die es nicht gibt
             -5 Kein RAP Katalog zur Ueberpruefung gefunden
-            Positive Zahl ist exitcode von piControlReset
+            Positive Zahl ist exitcode von pi_control_reset
 
         """
         proginit.logger.debug("xmlrpc call setpictoryrsc")
@@ -1415,7 +1418,7 @@ class RevPiPyLoad:
             return -3
         else:
             if reset:
-                return os.system(proginit.picontrolreset)
+                return pi_control_reset()
             else:
                 return 0
 

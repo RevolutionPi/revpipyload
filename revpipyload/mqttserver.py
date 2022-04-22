@@ -37,17 +37,11 @@ class MqttServer(Thread):
         if not isinstance(basetopic, str):
             raise ValueError("parameter topic must be <class 'str'>")
         if not (isinstance(sendinterval, int) and sendinterval >= 0):
-            raise ValueError(
-                "parameter sendinterval must be <class 'int'> and >= 0"
-            )
+            raise ValueError("parameter sendinterval must be <class 'int'> and >= 0")
         if not (isinstance(broker_address, str) and broker_address != ""):
-            raise ValueError(
-                "parameter broker_address must be <class 'str'> and not empty"
-            )
+            raise ValueError("parameter broker_address must be <class 'str'> and not empty")
         if not (isinstance(port, int) and 0 < port < 65535):
-            raise ValueError(
-                "parameter sendinterval must be <class 'int'> and 1 - 65535"
-            )
+            raise ValueError("parameter sendinterval must be <class 'int'> and 1 - 65535")
         if not isinstance(tls_set, bool):
             raise ValueError("parameter tls_set must be <class 'bool'>")
         if not isinstance(username, str):
@@ -157,17 +151,11 @@ class MqttServer(Thread):
                     shared_procimg=True,
                 )
                 self._rpi.debug = -1
-                proginit.logger.warning(
-                    "replace_ios_file not loadable for MQTT - using "
-                    "defaults now | {0}".format(e)
-                )
+                proginit.logger.warning("replace_ios_file not loadable for MQTT - using defaults now | {0}".format(e))
 
             except Exception as e:
                 self._rpi = None
-                proginit.logger.error(
-                    "piCtory configuration not loadable for MQTT | "
-                    "{0}".format(e)
-                )
+                proginit.logger.error("piCtory configuration not loadable for MQTT | {0}".format(e))
                 raise e
 
         # Exportierte IOs laden
@@ -179,27 +167,10 @@ class MqttServer(Thread):
         # CoreIOs prüfen und zu export hinzufügen
         lst_coreio = []
         if self._rpi.core:
-            if self._rpi.core.a1green.export:
-                lst_coreio.append(self._rpi.core.a1green)
-            if self._rpi.core.a1red.export:
-                lst_coreio.append(self._rpi.core.a1red)
-            if self._rpi.core.a2green.export:
-                lst_coreio.append(self._rpi.core.a2green)
-            if self._rpi.core.a2red.export:
-                lst_coreio.append(self._rpi.core.a2red)
-            if self._rpi.core.wd.export:
-                lst_coreio.append(self._rpi.core.wd)
-
-            # Connect-IOs anhängen
-            if type(self._rpi.core) == revpimodio2.device.Connect:
-                if self._rpi.core.a3green.export:
-                    lst_coreio.append(self._rpi.core.a3green)
-                if self._rpi.core.a3red.export:
-                    lst_coreio.append(self._rpi.core.a3red)
-                if self._rpi.core.x2in.export:
-                    lst_coreio.append(self._rpi.core.x2in)
-                if self._rpi.core.x2out.export:
-                    lst_coreio.append(self._rpi.core.x2out)
+            for obj_name in self._rpi.core.__slots__:
+                obj = getattr(self._rpi.core, obj_name)
+                if isinstance(obj, revpimodio2.io.IOBase):
+                    lst_coreio.append(obj)
 
         # IOs exportieren und Events anmelden
         for io in lst_coreio:
@@ -233,10 +204,7 @@ class MqttServer(Thread):
         proginit.logger.debug("enter MqttServer._on_disconnect()")
 
         if rc != 0:
-            proginit.logger.warning(
-                "unexpected disconnection from mqtt broker - "
-                "will try to reconnect"
-            )
+            proginit.logger.warning("unexpected disconnection from mqtt broker - will try to reconnect")
 
         proginit.logger.debug("leave MqttServer._on_disconnect()")
 
@@ -253,9 +221,7 @@ class MqttServer(Thread):
         else:
             lst_topic = msg.topic.split("/")
             if len(lst_topic) < 2:
-                proginit.logger.info(
-                    "wrong topic format - need ./get/ioname or ./set/ioname"
-                )
+                proginit.logger.info("wrong topic format - need ./get/ioname or ./set/ioname")
                 return
 
             # Aktion und IO auswerten
@@ -276,17 +242,12 @@ class MqttServer(Thread):
                     io = self._rpi.io[ioname]
                 io_needbytes = type(io.value) == bytes
             except Exception:
-                proginit.logger.error(
-                    "can not find io '{0}' for MQTT".format(ioname)
-                )
+                proginit.logger.error("can not find io '{0}' for MQTT".format(ioname))
                 return
 
             # Aktion verarbeiten
             if not io.export:
-                proginit.logger.error(
-                    "io '{0}' is not marked as export in piCtory for MQTT use"
-                    "".format(ioname)
-                )
+                proginit.logger.error("io '{0}' is not marked as export in piCtory for MQTT use".format(ioname))
 
             elif ioget:
                 # Werte laden, wenn nicht autorefresh
@@ -297,9 +258,7 @@ class MqttServer(Thread):
                 self._evt_io(io.name, io.value, requested=True)
 
             elif ioset and io.type != revpimodio2.OUT:
-                proginit.logger.error(
-                    "can not write to inputs with MQTT"
-                )
+                proginit.logger.error("can not write to inputs with MQTT")
 
             elif ioset:
                 # Convert MQTT Payload to valid Output-Value
@@ -313,31 +272,25 @@ class MqttServer(Thread):
                         try:
                             value = value.to_bytes(io.length, io.byteorder)
                         except OverflowError:
-                            proginit.logger.error(
-                                "can not convert value '{0}' to fitting bytes"
-                                "".format(value)
-                            )
+                            proginit.logger.error("can not convert value '{0}' to fitting bytes".format(value))
                             return
 
-                elif value == "false" and not io_needbytes:
+                elif value.lower() == "false" and not io_needbytes:
                     value = 0
-                elif value == "true" and not io_needbytes:
+                elif value.lower() == "true" and not io_needbytes:
                     value = 1
                 else:
-                    proginit.logger.error(
-                        "can not convert value '{0}' for output '{1}'"
-                        "".format(value, ioname)
-                    )
+                    proginit.logger.error("can not convert value '{0}' for output '{1}'".format(value, ioname))
                     return
 
                 # Write Value to RevPi
                 try:
                     io.value = value
+                    # Write data without autorefresh
+                    if not self._send_events:
+                        io._parentdevice.writeprocimg()
                 except Exception:
-                    proginit.logger.error(
-                        "could not write '{0}' to Output '{1}'"
-                        "".format(value, ioname)
-                    )
+                    proginit.logger.error("could not write '{0}' to Output '{1}'".format(value, ioname))
 
             elif ioreset:
                 # Counter zurücksetzen
@@ -348,9 +301,7 @@ class MqttServer(Thread):
 
             else:
                 # Aktion nicht erkennbar
-                proginit.logger.warning(
-                    "can not see get/set in topic '{0}'".format(msg.topic)
-                )
+                proginit.logger.warning("can not see get/set in topic '{0}'".format(msg.topic))
 
     def _send_pictory_conf(self):
         """Sendet piCtory Konfiguration per MQTT."""
@@ -359,10 +310,7 @@ class MqttServer(Thread):
             self._mq.publish(self._mqtt_pictory, fh.read())
             fh.close()
         except Exception:
-            proginit.logger.error(
-                "can not read and publish piCtory config '{0}'"
-                "".format(proginit.pargs.configrsc)
-            )
+            proginit.logger.error("can not read and publish piCtory config '{0}'".format(proginit.pargs.configrsc))
 
     def newlogfile(self):
         """Konfiguriert die FileHandler auf neue Logdatei."""
@@ -382,16 +330,12 @@ class MqttServer(Thread):
         proginit.logger.debug("enter MqttServer.run()")
 
         # MQTT verbinden
-        proginit.logger.info(
-            "connecting to mqtt broker {0}".format(self._broker_address)
-        )
+        proginit.logger.info("connecting to mqtt broker {0}".format(self._broker_address))
         try:
             self._mq.connect(self._broker_address, self._port, keepalive=60)
         except Exception:
             self._on_connect(self._mq, None, None, 3)
-            self._mq.connect_async(
-                self._broker_address, self._port, keepalive=60
-            )
+            self._mq.connect_async(self._broker_address, self._port, keepalive=60)
         self._mq.loop_start()
 
         # Eventüberwachung starten
@@ -411,9 +355,7 @@ class MqttServer(Thread):
 
                 # Eventüberwachung erneut starten
                 if self._send_events:
-                    proginit.logger.debug(
-                        "start non blocking mainloop of revpimodio"
-                    )
+                    proginit.logger.debug("start non blocking mainloop of revpimodio")
                     self._rpi.mainloop(blocking=False)
 
             if send_cycledata:
@@ -424,19 +366,14 @@ class MqttServer(Thread):
                 # Exportierte IOs übertragen
                 for io in self._exported_ios:
                     value = io.value
-                    if isinstance(value, bytes):
-                        value = int.from_bytes(value, "little")
-                    self._mq.publish(self._mqtt_io.format(io.name), int(value))
+                    if isinstance(value, bool):
+                        value = int(value)  # Convert False/True to 0/1. Publish function would send the string.
+                    self._mq.publish(self._mqtt_io.format(io.name), value)
 
-            self._evt_data.wait(
-                10 if not send_cycledata else self._sendinterval
-            )
+            self._evt_data.wait(10 if not send_cycledata else self._sendinterval)
 
         # MQTT trennen
-        proginit.logger.info(
-            "disconnecting from mqtt broker {0}".format(self._broker_address)
-        )
-        # NOTE: dies gab dead-locks: self._mq.loop_stop()
+        proginit.logger.info("disconnecting from mqtt broker {0}".format(self._broker_address))
         self._mq.disconnect()
 
         # RevPiModIO aufräumen

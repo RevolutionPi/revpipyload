@@ -9,7 +9,7 @@ from fcntl import ioctl
 from random import random
 from struct import pack, unpack
 from subprocess import Popen
-from threading import Thread, Event
+from threading import Event, Thread
 from time import time
 
 import proginit as pi
@@ -45,7 +45,6 @@ class SoftwareWatchdog:
         pi.logger.debug("enter SoftwareWatchdog.__th_run()")
 
         # Startup delay to let the python program start and trigger
-        # todo: Is this fix value okay?
         if self._exit.wait(2.0):
             pi.logger.debug("leave SoftwareWatchdog.__th_run()")
             return
@@ -74,9 +73,7 @@ class SoftwareWatchdog:
                 self.triggered = True
                 if self._process is not None:
                     self._process.kill()
-                    pi.logger.warning(
-                        "process killed by software watchdog"
-                    )
+                    pi.logger.warning("process killed by software watchdog")
                 break
 
         os.close(fd)
@@ -147,9 +144,7 @@ class SoftwareWatchdog:
         if not isinstance(value, int):
             raise TypeError("timeout must be <class 'int'>")
         if value < 0:
-            raise ValueError(
-                "timeout value must be 0 to disable or a positive number"
-            )
+            raise ValueError("timeout value must be 0 to disable or a positive number")
 
         if value == 0:
             # A value of 0 will stop the watchdog thread
@@ -161,15 +156,11 @@ class SoftwareWatchdog:
             self._timeout = 0.0
         else:
             self._timeout = float(value)
-            if not (self.triggered or
-                    self._stopped or self.__th.is_alive()):
+            if not (self.triggered or self._stopped or self.__th.is_alive()):
                 self._exit.clear()
                 self.__th = Thread(target=self.__th_run)
                 self.__th.start()
-            pi.logger.debug(
-                "set software watchdog timeout to {0} seconds"
-                "".format(value)
-            )
+            pi.logger.debug("set software watchdog timeout to {0} seconds".format(value))
 
 
 class ResetDriverWatchdog(Thread):
@@ -201,8 +192,8 @@ class ResetDriverWatchdog(Thread):
         except Exception:
             self.not_implemented = True
             pi.logger.error(
-                "can not open process image at '{0}' for piCtory "
-                "reset_driver watchdog".format(pi.pargs.procimg)
+                "can not open process image at '{0}' for piCtory reset_driver watchdog"
+                "".format(pi.pargs.procimg)
             )
             return
 
