@@ -1,3 +1,10 @@
+revpipyload (0.9.8-1+revpi10) buster; urgency=medium
+
+  [ Sven Sager ]
+  * Object scan in MQTT server uses wrong name source, ignoring export flag
+
+ -- Zhi Han <z.han@kunbus.com>  Thu, 09 Jun 2022 16:00:11 +0200
+
 revpipyload (0.9.7-1+revpi10) unstable; urgency=medium
 
   [Sven Sager]
