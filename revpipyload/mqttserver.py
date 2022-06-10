@@ -167,9 +167,12 @@ class MqttServer(Thread):
         # CoreIOs prüfen und zu export hinzufügen
         lst_coreio = []
         if self._rpi.core:
-            for obj_name in self._rpi.core.__slots__:
+            for obj_name in dir(self._rpi.core):
+                # Scan all non-private objects of the core device
+                if obj_name.find("_") == 0:
+                    continue
                 obj = getattr(self._rpi.core, obj_name)
-                if isinstance(obj, revpimodio2.io.IOBase):
+                if isinstance(obj, revpimodio2.io.IOBase) and obj.export:
                     lst_coreio.append(obj)
 
         # IOs exportieren und Events anmelden
