@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: revpipyload
 Source: https://github.com/naruxde/revpipyload
+Upstream-Name: revpipyload
 
 Files: *
 Copyright: 2021 Sven Sager <akira@narux.de>
