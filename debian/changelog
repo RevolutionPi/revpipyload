@@ -1,4 +1,4 @@
-revpipyload (0.9.8-1+revpi10) buster; urgency=medium
+revpipyload (0.9.8-1+revpi11+1) bullseye; urgency=medium
 
   [ Sven Sager ]
   * Object scan in MQTT server uses wrong name source, ignoring export flag
