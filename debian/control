@@ -8,7 +8,6 @@ Vcs-Git: https://github.com/RevolutionPi/revpipyload.git
 Build-Depends:
   debhelper-compat (= 12),
   dh-python,
-  python-setuptools,
   python3-all,
   python3-setuptools
 Standards-Version: 4.3.0
