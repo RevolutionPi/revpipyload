@@ -21,7 +21,7 @@ Depends:
   ${misc:Depends},
   lsb-base,
   python3-paho-mqtt,
-  python3-revpimodio2 (>= 2.5.0)
+  python3-revpimodio2 (>= 2.6.0)
 Description: PLC Loader for Python projects on the RevolutionPi
  This program start a given Python PLC program on system boot. It monitors the
  program and reistartes it if an error occures. On a crash the complete
