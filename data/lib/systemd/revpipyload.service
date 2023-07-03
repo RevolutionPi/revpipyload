@@ -1,0 +1,13 @@
+[Unit]
+Description=Python PLC services for Revolution Pi
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/revpipyload
+Type=forking
+PIDFile=/var/run/revpipyload.pid
+ExecStart=/usr/share/revpipyload/revpipyloadd -d $DAEMON_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

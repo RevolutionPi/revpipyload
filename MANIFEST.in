@@ -1,7 +1,6 @@
-include MANIFEST.in
-include stdeb.cfg
 recursive-include data *
-recursive-include debian *
-recursive-include revpipyload *
-global-exclude test/*
-global-exclude *.pyc
+include LICENSE.txt
+include Makefile
+include MANIFEST.in
+include requirements.txt
+include setup.py

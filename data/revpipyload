@@ -1,7 +1,0 @@
-#!/bin/sh
-if [ -d /usr/local/share/revpipyload ]
-then
-    exec "/usr/local/share/revpipyload/revpipyload.py" "$@"
-else
-    exec "/usr/share/revpipyload/revpipyload.py" "$@"
-fi
