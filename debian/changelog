@@ -1,3 +1,38 @@
+revpipyload (0.10.0-1+revpi10+1) buster; urgency=medium
+
+  [ Kees Jan Koster ]
+  * Add ability to write I/O that has slashes in the names. Those look
+    good on MQTT.
+
+  [ Sven Sager ]
+  * Some additional MQTT updates
+  * Support wordorder for revpi-commander
+  * Reorder package to src-layout, switch to GPLv2 license.
+  * Add default files for installation or packaging.
+  * Replaces Master-Slave with Client-Server
+  * Bugfix of imports and wordorder for revpi commander
+  * Reorder lines in debian files to match our package defaults
+  * Clean up files and template comments
+  * Add missing values to gbp.conf file
+  * Fix Standards-Version in control file
+  * fix: Remove python 2 build dependency python-setuptools
+  * Update debian files with our default values
+  * fix: Set dependency of RevPiModIO to final version
+  * docs: Add new wordorder property to example file
+  * feat: Remove shell scripts from data files
+  * fix: Load all class attributes regardless of configuration
+  * feat: Rename obsolet config file values
+  * revert: XML-RPC protocol changes
+  * chore: Release 0.10.0
+  * fix: Upstream project has removed mqtt library, which makes this
+    patch superfluous
+  * fix: Update upstream dependencies for debian package
+  * fix: dh_python3 pydist needs revpimodio2 as build dependency
+  * feat: Adapt packaging to new folders hierachie
+  * feat: Use example files form upstream in our package
+
+ -- Sven Sager <s.sager@kunbus.com>  Tue, 04 Jul 2023 11:43:24 +0200
+
 revpipyload (0.9.8-1+revpi10) buster; urgency=medium
 
   [ Sven Sager ]
