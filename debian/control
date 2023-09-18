@@ -19,7 +19,6 @@ Architecture: all
 Pre-Depends: ${misc:Pre-Depends}
 Depends:
   ${python3:Depends},
-  lsb-base
   ${misc:Depends}
 Description: PLC Loader for Python projects on the RevolutionPi
  This program start a given Python PLC program on system boot. It monitors the
