@@ -1,4 +1,4 @@
-revpipyload (0.10.0-1+revpi11+1) bullseye; urgency=medium
+revpipyload (0.10.0-1+revpi12+1) bookworm; urgency=medium
 
   [ Kees Jan Koster ]
   * Add ability to write I/O that has slashes in the names. Those look
@@ -24,6 +24,8 @@ revpipyload (0.10.0-1+revpi11+1) bullseye; urgency=medium
   * fix: dh_python3 pydist needs revpimodio2 as build dependency
   * feat: Adapt packaging to new folders hierachie
   * feat: Use example files form upstream in our package
+  * packaging: Add all used python libraries to build depends for testing
+  * packaging: Remove obsolet lsb-base dependency from package
 
  -- Sven Sager <s.sager@kunbus.com>  Mon, 03 Jul 2023 17:15:59 +0200
 
