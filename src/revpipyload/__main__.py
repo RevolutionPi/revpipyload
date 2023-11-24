@@ -17,15 +17,8 @@ if __package__ == "":
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) == 2 and "--version" in sys.argv:
-        # Catch --version, if this is the only argument (sys.argv[0] is always the script name)
-        from revpipyload import __version__
+    # Use absolut import in the __main__ module
+    from revpipyload.revpipyload import main
 
-        print(__version__)
-        sys.exit(0)
-
-    else:
-        from revpipyload.revpipyload import main
-
-        # Run the main application of this package
-        sys.exit(main())
+    # Run the main application of this package
+    sys.exit(main())
