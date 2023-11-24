@@ -10,7 +10,7 @@ Build-Depends:
   debhelper-compat (= 13),
   dh-python,
   python3-all,
-  python3-revpimodio2 (>= 2.6.0),
+  python3-revpimodio2 (>= 2.7.0~rc2),
   python3-setuptools
 Standards-Version: 4.6.2
 
