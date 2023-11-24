@@ -10,7 +10,7 @@ Build-Depends:
   debhelper-compat (= 12),
   dh-python,
   python3-all,
-  python3-revpimodio2 (>= 2.6.0),
+  python3-revpimodio2 (>= 2.7.0~rc2),
   python3-setuptools
 Standards-Version: 4.3.0
 
@@ -22,7 +22,7 @@ Depends:
   ${misc:Depends},
   lsb-base,
   python3-paho-mqtt,
-  python3-revpimodio2 (>= 2.6.0)
+  python3-revpimodio2 (>= 2.7.0~rc2)
 Description: PLC Loader for Python projects on the RevolutionPi
  This program start a given Python PLC program on system boot. It monitors the
  program and reistartes it if an error occures. On a crash the complete

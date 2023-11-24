@@ -3,6 +3,5 @@
 export PYBUILD_NAME=revpipyload
 export PYBUILD_INSTALL_ARGS=--install-lib=/usr/share/revpipyload/ --install-scripts=/usr/share/revpipyload/
 
-
 %:
 	dh $@ --with python3 --buildsystem=pybuild
