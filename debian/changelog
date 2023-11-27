@@ -1,3 +1,20 @@
+revpipyload (0.11.0-1+revpi11+1) bullseye; urgency=medium
+
+  * fix(packaging): Upstream project changed license to GPL-2
+  * packaging: Add all used python libraries to build depends for testing
+  * chore: Release 0.11.0rc1
+  * build: Add environment variable to set alternative venv path
+  * build: Fix Makefile targets to match GNU coding standards
+  * fix: Fixes the error that setconfig always reloads the settings
+  * fix: Settings name translation has to check the existence of key
+  * feat: New XML-RPC function 'set_plcprogram'
+  * chore: Release 0.11.0rc2
+  * feat: New XML-RPC function for async calls of piControl
+  * chore: Release 0.11.0
+  * packaging: Update dependency version of revpimodio2
+
+ -- Sven Sager <s.sager@kunbus.com>  Mon, 27 Nov 2023 14:28:01 +0100
+
 revpipyload (0.10.0-1+revpi11+1) bullseye; urgency=medium
 
   [ Kees Jan Koster ]
