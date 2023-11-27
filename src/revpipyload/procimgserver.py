@@ -44,8 +44,10 @@ class ProcimgServer:
             "ps_inps": lambda: self.ios("inp"),
             "ps_outs": lambda: self.ios("out"),
             "ps_values": self.values,
+            "ps_switching_cycles": lambda io_name: self.async_call("ro_get_switching_cycles", io_name)
         }
         self.xmlwritefuncs = {
+            "ps_reset_counter": lambda io_name: self.async_call("di_reset", io_name),
             "ps_setvalue": self.setvalue,
         }
 
@@ -58,6 +60,33 @@ class ProcimgServer:
         """Clean up RevPiModIO."""
         if self.rpi is not None:
             self.rpi.cleanup()
+
+    def async_call(self, call: str, *args):
+        """
+        Call an async function (ioctl) of piControl.
+
+        :param call: IOCTL call
+        :param args: Optional arguments to pass to async function
+        :return: Return value of async call
+        """
+        proginit.logger.debug("ProcimgServer.async_call({0}, {1})".format(call, args))
+
+        if call == "ro_get_switching_cycles":
+            # args = [io_name]
+            io_name = args[0]
+            switching_cycles = self.rpi.io[io_name].get_switching_cycles()
+            if not isinstance(switching_cycles, tuple):
+                switching_cycles = (switching_cycles,)
+
+            # int values will exceed XML-RPC limits, so we use str
+            return tuple(str(switching_cycle) for switching_cycle in switching_cycles)
+
+        if call == "di_reset":
+            # args = [io_name]
+            io_name = args[0]
+            return self.rpi.io[io_name].reset()
+
+        raise ValueError("Unknown async function name in call argument")
 
     def devices(self):
         """Generiert Deviceliste mit Position und Namen.
@@ -83,6 +112,16 @@ class ProcimgServer:
                 lst_io = []
 
             for io in lst_io:
+                lst_async_calls = []
+
+                if isinstance(io, revpimodio2.io.IntIOCounter):
+                    # Counter IOs has a reset property
+                    lst_async_calls.append("di_reset")
+
+                if isinstance(io, revpimodio2.io.RelaisOutput):
+                    # Relaisoutputs can read switching cycles
+                    lst_async_calls.append("ro_get_switching_cycles")
+
                 dict_ios[dev.position].append([
                     io.name,
                     1 if io._bitlength == 1 else int(io._bitlength / 8),
@@ -92,6 +131,7 @@ class ProcimgServer:
                     io._byteorder,
                     io._signed,
                     getattr(io, "wordorder", "ignored"),
+                    lst_async_calls,
                 ])
         return Binary(pickle.dumps(dict_ios))
 
