@@ -10,6 +10,8 @@ import sys
 from argparse import ArgumentParser
 from configparser import ConfigParser
 
+from . import __version__
+
 conf = ConfigParser()
 forked = False
 globalconffile = None
@@ -41,6 +43,11 @@ def configure():
     # Command arguments
     parser = ArgumentParser(
         description="RevolutionPi Python Loader"
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s {0}".format(__version__)
     )
     parser.add_argument(
         "-d", "--daemon", action="store_true", dest="daemon",
