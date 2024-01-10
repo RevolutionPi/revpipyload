@@ -5,7 +5,7 @@ Maintainer: KUNBUS GmbH <support@kunbus.com>
 Rules-Requires-Root: no
 Homepage: https://revpimodio.org/revpipyplc/
 Vcs-Browser: https://gitlab.com/RevolutionPi/revpipyload
-Vcs-Git: https://gitlab.com/RevolutionPi/revpipyload.git -b raspios/bookworm
+Vcs-Git: https://gitlab.com/RevolutionPi/revpipyload.git -b debian/bookworm
 Build-Depends:
   debhelper-compat (= 13),
   dh-python,
