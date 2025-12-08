@@ -1,3 +1,9 @@
+revpipyload (0.11.0-2+deb13+1) trixie; urgency=medium
+
+  * Initial release for trixie
+
+ -- Sven Sager <s.sager@kunbus.com>  Mon, 08 Dec 2025 10:55:28 +0100
+
 revpipyload (0.11.0-1+revpi12+1) bookworm; urgency=medium
 
   * chore: Release 0.11.0rc1
