@@ -1,3 +1,10 @@
+revpipyload (0.11.1-1+deb13+1) trixie; urgency=medium
+
+  * fix: Ensure file operations are restricted to PLC working directory
+  * chore: Release 0.11.1
+
+ -- Sven Sager <s.sager@kunbus.com>  Tue, 07 Jul 2026 14:33:15 +0200
+
 revpipyload (0.11.0-2+deb13+1) trixie; urgency=medium
 
   * Initial release for trixie
