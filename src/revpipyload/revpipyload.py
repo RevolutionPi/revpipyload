@@ -1064,11 +1064,19 @@ class RevPiPyLoad:
         :param file_name: File with full path relative to work directory
         :return: True on success
         """
-        file_name = os.path.join(self.plcworkdir, file_name)
-        if os.path.exists(file_name):
-            os.remove(file_name)
-            dirname = os.path.dirname(file_name)
-            if dirname != self.plcworkdir:
+        plcworkdir = os.path.realpath(self.plcworkdir)
+        file_path = os.path.realpath(os.path.join(plcworkdir, file_name))
+
+        if os.path.commonpath([plcworkdir, file_path]) != plcworkdir:
+            proginit.logger.warning(
+                "file path is not in plc working directory"
+            )
+            return False
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            dirname = os.path.dirname(file_path)
+            if dirname != plcworkdir:
                 try:
                     # Try to remove directory, which will work if it is empty
                     os.rmdir(dirname)
@@ -1104,9 +1112,17 @@ class RevPiPyLoad:
         :param file_name: File with full path relative to work directory
         :return: Binary object in gzip format
         """
-        file_name = os.path.join(self.plcworkdir, file_name)
-        if os.path.exists(file_name):
-            with open(file_name, "rb") as fh:
+        plcworkdir = os.path.realpath(self.plcworkdir)
+        file_path = os.path.realpath(os.path.join(plcworkdir, file_name))
+
+        if os.path.commonpath([plcworkdir, file_path]) != plcworkdir:
+            proginit.logger.warning(
+                "file path is not in plc working directory"
+            )
+            return Binary()
+
+        if os.path.exists(file_path):
+            with open(file_path, "rb") as fh:
                 xmldata = Binary(gzip.compress(fh.read()))
             return xmldata
         return Binary()
@@ -1169,7 +1185,7 @@ class RevPiPyLoad:
         else:
             return -1
 
-    def xml_plcupload(self, filedata, filename):
+    def xml_plcupload(self, filedata: Binary, filename:str):
         """Empfaengt Dateien fuer das PLC Programm einzeln.
 
         @param filedata GZIP Binary data der Datei
@@ -1185,13 +1201,17 @@ class RevPiPyLoad:
         # Windowszeichen prüfen
         filename = filename.replace("\\", "/")
 
-        # Build absolut path, join will return last element, if absolute
-        dirname = os.path.join(self.plcworkdir, os.path.dirname(filename))
-        if os.path.abspath(dirname).find(self.plcworkdir) != 0:
+
+        plcworkdir = os.path.realpath(self.plcworkdir)
+        file_path = os.path.realpath(os.path.join(plcworkdir, filename))
+
+        if os.path.commonpath([plcworkdir, file_path]) != plcworkdir:
             proginit.logger.warning(
                 "file path is not in plc working directory"
             )
             return False
+
+        dirname = os.path.dirname(file_path)
 
         set_uid = self.plcuid if self.plcworkdir_set_uid else 0
         set_gid = self.plcgid if self.plcworkdir_set_uid else 0
@@ -1210,9 +1230,9 @@ class RevPiPyLoad:
 
         # Datei erzeugen
         try:
-            with open(filename, "wb") as fh:
+            with open(file_path, "wb") as fh:
                 fh.write(gzip.decompress(filedata.data))
-            os.chown(filename, set_uid, set_gid)
+            os.chown(file_path, set_uid, set_gid)
             return True
         except Exception:
             return False
