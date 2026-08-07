@@ -1,3 +1,18 @@
+revpipyload (0.12.0-1+deb12+1) bookworm; urgency=medium
+
+  * refactor: Replace `_exit` flag with `_evt_exit` event
+  * feat: Add option to use unix socket for xml rpc server
+  * feat: Add unix group support for XML-RPC server socket permissions
+  * fix: Remove shutdown, this resolves a dead lock
+  * feat: Enhance secure-installation command with Unix socket support
+  * chore: Log process ID during initialization for debugging purposes
+  * fix: Set default config path and raise error for inaccessible file
+  * chore: Release 0.12.0
+  * chore: Log warning for required RevPi Commander version
+  * fix: Clarify TCP and Unix socket connection in secure-installation
+
+ -- Sven Sager <s.sager@kunbus.com>  Fri, 07 Aug 2026 13:10:54 +0200
+
 revpipyload (0.11.1-1+deb12+1) bookworm; urgency=medium
 
   [ Philipp Rosenberger ]
