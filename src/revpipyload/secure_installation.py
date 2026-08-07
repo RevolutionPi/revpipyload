@@ -18,6 +18,7 @@ def main() -> int:
     """Secure installation script to use on Revolution Pi."""
     from configparser import ConfigParser
     from os import R_OK, access, getuid, system
+    from shutil import which
     from re import match
     from sys import stderr, stdout
 
@@ -42,7 +43,9 @@ def main() -> int:
     # Prepare variables
     xmlrpcacl = IpAclManager(minlevel=0, maxlevel=4)
     xmlrpcacl.loadaclfile(aclxmlrpc)
-    xmlrpc_only_localhost = xmlrpcbindip.find("127.") == 0 or xmlrpcbindip == ""
+    xmlrpc_unix_socket = xmlrpcbindip == "socket" or xmlrpcbindip.startswith("/")
+    xmlrpc_only_localhost = xmlrpcbindip.find("127.") == 0 or xmlrpcbindip == "" or \
+                            xmlrpc_unix_socket
 
     # ----- Print summary of actual configuration
     stdout.write("""
@@ -58,7 +61,8 @@ def main() -> int:
         aclxmlrpc=aclxmlrpc,
         xmlrpc="" if xmlrpc else "NOT ",
         source="" if not xmlrpc
-        else " from this computer only (localhost)." if xmlrpc_only_localhost
+        else " from this computer / SSH only (unix socket)." if xmlrpcbindip == "socket" or xmlrpcbindip.startswith("/")
+        else " from this computer / SSH only (localhost)." if xmlrpc_only_localhost
         else " from ACL listed remote computers!"
     ))
 
@@ -81,7 +85,7 @@ def main() -> int:
                 stdout.write("{0:15} - Level: {1:2}".format(ip, level))
                 counter += 1
             stdout.write("\n")
-        else:
+        elif not xmlrpc_unix_socket:
             stderr.write(
                 "\nWARNING: NO IP addresses defined in ACL!\n         You will "
                 "not be able to connect with RevPiPyControl at this moment!\n"
@@ -99,10 +103,18 @@ def main() -> int:
             stderr.write("\nYou need root permissions to change values (sudo).\n")
             return 4
 
-        cmd = input("\nDo you want to allow connections from remote hosts? (y/N) ").lower()
+        cmd = input("\nDo you want to allow connections ONLY via SSH/Unix-Socket? (y/N) ").lower()
         if cmd == "y":
             conf.set("XMLRPC", "xmlrpc", "1")
+            conf.set("XMLRPC", "bindip", "socket")
+            xmlrpc_unix_socket = True
+            xmlrpcacl.acl = ""
+            save_xmlrpcacls()
+
+        elif input("\nDo you want to allow native TCP connections from remote hosts? (y/N) ").lower() == "y":
+            conf.set("XMLRPC", "xmlrpc", "1")
             conf.set("XMLRPC", "bindip", "*")
+            xmlrpc_unix_socket = False
 
             cmd = input("Reset the ACL file to allow all private networks? (y/N) ").lower()
             if cmd == "y":
@@ -135,12 +147,13 @@ def main() -> int:
                             stderr.write("Wrong format (0.0.0.0)\n")
 
         else:
-            cmd = input("Do you want to allow connections from localhost ONLY? (y/N) ").lower()
+            cmd = input("Do you want to allow TCP connections from localhost ONLY? (y/N) ").lower()
             if cmd == "y":
                 conf.set("XMLRPC", "xmlrpc", "1")
                 conf.set("XMLRPC", "bindip", "127.0.0.1")
+                xmlrpc_unix_socket = False
 
-                cmd = input("Reset the ACL file to allow localhost connections only? (y/N) ").lower()
+                cmd = input("Reset the ACL file to allow localhost TCP connections only? (y/N) ").lower()
                 if cmd == "y":
                     xmlrpcacl.acl = "127.*.*.*,4 "
                     save_xmlrpcacls()
@@ -153,6 +166,7 @@ def main() -> int:
                 if cmd == "y":
                     conf.set("XMLRPC", "xmlrpc", "0")
                     conf.set("XMLRPC", "bindip", "127.0.0.1")
+                    xmlrpc_unix_socket = False
                     xmlrpcacl.acl = ""
                     save_xmlrpcacls()
                 else:
@@ -169,15 +183,25 @@ def main() -> int:
         stdout.write("\n\nWe did no changes!\n")
         return 2
 
-    if system("/etc/init.d/revpipyload status > /dev/null") == 0:
+    # Check for service manager
+    if which("systemctl"):
+        cmd_status = "systemctl status revpipyload > /dev/null"
+        cmd_reload = "systemctl reload revpipyload"
+        hint_reload = "sudo systemctl reload revpipyload"
+    else:
+        cmd_status = "/etc/init.d/revpipyload status > /dev/null"
+        cmd_reload = "/etc/init.d/revpipyload reload"
+        hint_reload = "sudo /etc/init.d/revpipyload reload"
+
+    if system(cmd_status) == 0:
         try:
             cmd = input("\nDo you want to apply the new settings now? (Y/n) ").lower()
             if cmd in ("", "y"):
-                system("/etc/init.d/revpipyload reload")
+                system(cmd_reload)
             else:
                 stderr.write(
                     "\nYou have to activate the new settings for RevPiPyLoad!\n"
-                    "    sudo /etc/init.d/revpipyload reload\n"
+                    "    {0}\n".format(hint_reload)
                 )
         except KeyboardInterrupt:
             pass

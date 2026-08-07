@@ -9,6 +9,7 @@ import os
 import sys
 from argparse import ArgumentParser
 from configparser import ConfigParser
+from os import getpid
 
 from . import __version__
 
@@ -55,7 +56,7 @@ def configure():
     )
     parser.add_argument(
         "-c", "--conffile", dest="conffile",
-        default="revpipyload.conf",
+        default="/etc/revpipyload/revpipyload.conf",
         help="Application configuration file"
     )
     parser.add_argument(
@@ -186,3 +187,6 @@ def configure():
     else:
         loglevel = logging.DEBUG
     logger.setLevel(loglevel)
+
+    # Log PID for development purposes
+    logger.debug("Running with PID {}".format(getpid()))
